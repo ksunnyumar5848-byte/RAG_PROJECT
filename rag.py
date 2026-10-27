@@ -159,6 +159,32 @@ def create_embeddings(texts):
 
 
 
+#Build and save the FAISS vector database 
+def build_vector_store():
+    documents=load_document()
+    chunks=split_into_chunks(documents)
+
+    print("Create embedding .... this may take a little while")
+
+    vector=create_embeddings([chunk["text"] for chunk in chunks])
+
+    index=faiss.IndexFlatIP(vector.shape[1])
+    index.add(vector)
+
+    VECTOR_STORE_DIR.mkdir(parents=True,exist_ok=True)
+
+    faiss.write_index(index,str(INDEX_PATH))
+
+    with CHUNKS_PATH.open("w",encoding="utf-8") as file:
+        json.dumps(chunks,file,ensure_ascii=False,indent=2)
+
+    print(f"Saved FAISS Index to : {INDEX_PATH}")
+
+    print(f" Saved chunk meta data : {CHUNKS_PATH}")
+
+    return index ,chunks
+
+
 
 
 
