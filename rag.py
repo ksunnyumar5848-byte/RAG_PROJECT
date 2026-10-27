@@ -50,6 +50,29 @@ client = genai.Client(api_key=api_key)
 def load_document():
 
     if not DATA_DIR.exists():
-        raise RuntimeError(f"Data folder are found here : {DATA_DIR}")
+        raise FileNotFoundError(f"Data folder are found here : {DATA_DIR}")
 
     documents=[]
+
+    for file_path in sorted(DATA_DIR.rglob("*")):
+        if not file_path.is_file():
+            continue
+        suffix=file_path.suffix.lower()     
+        text=""
+
+        try:
+            if suffix==".txt":
+                text=file_path.read_text(encoding="utf-8",errors= "ignore")
+            elif suffix==".pdf":
+                reader=PdfReader(str(file_path))
+                text="\n".join(page.extract_text() or "" for page in reader.pages)
+            elif suffix==".docx":
+                doc = Document(str(file_path))
+                text="\n".join(paragraph.text for paragraph in doc.paragraphs if paragraph.text.strip())
+            else:
+                continue 
+                
+        except Exception as e:
+            print(f"  Warning Could not read the {file_path.name} : e ")
+            continue
+
