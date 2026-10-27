@@ -76,3 +76,15 @@ def load_document():
             print(f"  Warning Could not read the {file_path.name} : e ")
             continue
 
+        text=text.strip()
+
+        if text:
+            documents.append({
+                "source":file_path.relative_to(DATA_DIR),
+                "text":text
+            })
+            print(f"Loaded : {file_path.relative_to(DATA_DIR)}")
+        else:
+            print(f" Skipped (no extracable text found ): {file_path.name}")
+    
+
