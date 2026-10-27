@@ -221,8 +221,21 @@ def retieve_relevent_chunks(question,index,chunks):
 
     results=[]
 
+    for score , position in zip(scores[0],positions[0]):
+
+        if position <0:
+            continue
+        chunk=chunks[int(position)]
+
+        results.append({
+            "source":chunks["source"],
+            "text":chunk["text"],
+            "source":float(score)
+        })
+
     
-        
+        return results
+
 
 
 
