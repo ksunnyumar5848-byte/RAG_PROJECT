@@ -208,6 +208,20 @@ def load_or_build_vector_store():
     print("no Complete saved vector db found buliding it now ")
 
     return build_vector_store
+
+
+#========================= Retrival 
+
+
+def retieve_relevent_chunks(question,index,chunks):
+    query_vector=create_embeddings([question])
+    number_to_fetch=TOP_K
+
+    scores, positions=index.search(query_vector,number_to_fetch)
+
+    results=[]
+
+    
         
 
 
