@@ -194,6 +194,15 @@ def load_or_build_vector_store():
 
         with CHUNKS_PATH.open("r",encoding="utf-8") as file:
             chunks=json.load(file)
+        if index.ntotal !=len(chunks):
+            print("saved index and chunk meta data do not match  rebuilding index ...........")
+
+            return build_vector_store
+        if index.ntotal ==0:
+            print("saved vector store in empty there for rebuilding........")
+
+            return build_vector_store
+        
 
 
 
