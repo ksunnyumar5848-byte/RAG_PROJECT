@@ -202,6 +202,12 @@ def load_or_build_vector_store():
             print("saved vector store in empty there for rebuilding........")
 
             return build_vector_store
+
+        print(f"Loaded {len(chunks)} chunks saved vector db ")
+        return index ,chunks
+    print("no Complete saved vector db found buliding it now ")
+
+    return build_vector_store
         
 
 
