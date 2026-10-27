@@ -185,6 +185,18 @@ def build_vector_store():
     return index ,chunks
 
 
+def load_or_build_vector_store():
+    VECTOR_STORE_DIR.mkdir(parents=True , exist_ok=True)
+
+    if INDEX_PATH.exists() and CHUNKS_PATH.exists():
+        print("Found saved vector store loading it without rebuilding .....")
+        index=faiss.read_index(str(INDEX_PATH))
+
+        with CHUNKS_PATH.open("r",encoding="utf-8") as file:
+            chunks=json.load(file)
+
+
+
 
 
 
