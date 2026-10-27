@@ -86,5 +86,12 @@ def load_document():
             print(f"Loaded : {file_path.relative_to(DATA_DIR)}")
         else:
             print(f" Skipped (no extracable text found ): {file_path.name}")
-    
+
+    if not documents:
+        raise ValueError("No readable text found in the data folder ")
+
+    return documents
+
+
+# 
 
