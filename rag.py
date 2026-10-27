@@ -120,6 +120,45 @@ def split_into_chunks(documents):
 
 
 
+# ----------GEmini Embedding----------------#
+
+import numpy as np
+import faiss
+
+def create_embeddings(texts):
+    """Generate embedding vectors in batches using Gemini."""
+
+    all_embeddings = []
+
+    for start in range(0, len(texts),EMBIDDING_BATCH_SIZE):
+        batch = texts[start:start+EMBIDDING_BATCH_SIZE]
+
+        response = client.models.embed_content(
+            model=EMBEDDING_MODEL,
+            contents=batch
+        )
+
+        batch_embeddings = [
+            embedding.values
+            for embedding in response.embeddings
+        ]
+
+        all_embeddings.extend(batch_embeddings)
+
+    vectors = np.asarray(all_embeddings, dtype=np.float32)
+
+    if vectors.ndim != 2 or len(vectors) != len(texts):
+        raise RuntimeError(
+            "Embedding response did not match the input text count."
+        )
+
+    # Normalize vectors so inner-product search behaves like cosine similarity
+    faiss.normalize_L2(vectors)
+
+    return vectors
+
+
+
 
 
 
