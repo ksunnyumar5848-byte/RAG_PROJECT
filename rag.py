@@ -93,5 +93,20 @@ def load_document():
     return documents
 
 
-# 
+# simple chunking 
+
+def split_into_chunks(documents):
+    chunks=[]
+    step =CHUNK_SIZE - CHUNK_OVERLAP
+
+    for document in documents:
+        text=document["text"]
+
+        for start in range(0,len(text),step):
+            chunk_text=text[start:start+CHUNK_SIZE].strip()
+
+
+
+
+
 
