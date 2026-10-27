@@ -105,6 +105,19 @@ def split_into_chunks(documents):
         for start in range(0,len(text),step):
             chunk_text=text[start:start+CHUNK_SIZE].strip()
 
+            if chunk_text:
+                chunks.append({
+                    "source":document["source"],
+                    "text":chunk_text
+                })
+
+    if not chunks:
+        raise ValueError("chunking produced no text chunks or data ")
+
+    print(f"created {len(chunks)} chunks.")  
+
+    return chunks
+
 
 
 
