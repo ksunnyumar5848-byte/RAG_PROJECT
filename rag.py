@@ -291,6 +291,43 @@ Retrieved Document Context:
     return answer + "\n\nSources: " + ", ".join(sources)
 
 
+#  here the main function 
+
+def main():
+    """Load the vector store once and answer questions until the user exits."""
+    try:
+        index, chunks = load_or_build_vector_store()
+    except Exception as exc:
+        print(f"\nCould not prepare the vector store: {exc}")
+        raise
+
+    print("\nSimple RAG chatbot is ready.")
+    print("Ask a question about your documents, or type 'exit' to quit.\n")
+
+    while True:
+        try:
+            question = input("You: ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print("\nGoodbye!")
+            break
+
+        if question.lower() in {"exit", "quit"}:
+            print("Goodbye!")
+            break
+
+        if not question:
+            continue
+
+        try:
+            print("\nAssistant:")
+            print(answer_question(question, index, chunks))
+            print()
+        except Exception as exc:
+            print(f"\nSorry, the question could not be answered: {exc}\n")
+
+
+if __name__ == "__main__":
+    main()
 
 
 
