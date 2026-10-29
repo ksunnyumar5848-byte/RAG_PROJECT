@@ -17,8 +17,8 @@ VECTOR_STORE_DIR=BASE_DIR / "vector_store"
 INDEX_PATH=VECTOR_STORE_DIR / "faiss.index"
 CHUNKS_PATH=VECTOR_STORE_DIR / "chunks.json"
 
-EMBEDDING_MODEL="models/text-embedding-004"
-CHAT_MODEL="gemini-2.0-flash"
+EMBEDDING_MODEL="gemini-embedding-001"
+CHAT_MODEL="gemini-3.6-flash"
 
 CHUNK_SIZE=1000
 CHUNK_OVERLAP=150
@@ -32,8 +32,11 @@ MAX_TOKENS=700
 
 # client setup 
 
-load_dotenv(BASE_DIR/ ".evn")
-api_key=os.getenv("GEMINI_API_KEY")
+load_dotenv(BASE_DIR / ".env")
+api_key = os.getenv("GEMINI_API_KEY")
+
+
+
 
 if not api_key:
     raise RecursionError(" GEMINI_API_KEY was are the not found ")
@@ -80,7 +83,7 @@ def load_document():
 
         if text:
             documents.append({
-                "source":file_path.relative_to(DATA_DIR),
+                "Source":file_path.relative_to(DATA_DIR),
                 "text":text
             })
             print(f"Loaded : {file_path.relative_to(DATA_DIR)}")
@@ -107,7 +110,7 @@ def split_into_chunks(documents):
 
             if chunk_text:
                 chunks.append({
-                    "source":document["source"],
+                    "Source":str(document["Source"]),
                     "text":chunk_text
                 })
 
@@ -176,7 +179,7 @@ def build_vector_store():
     faiss.write_index(index,str(INDEX_PATH))
 
     with CHUNKS_PATH.open("w",encoding="utf-8") as file:
-        json.dumps(chunks,file,ensure_ascii=False,indent=2)
+        json.dump(chunks,file,ensure_ascii=False,indent=2)
 
     print(f"Saved FAISS Index to : {INDEX_PATH}")
 
@@ -197,17 +200,17 @@ def load_or_build_vector_store():
         if index.ntotal !=len(chunks):
             print("saved index and chunk meta data do not match  rebuilding index ...........")
 
-            return build_vector_store
+            return build_vector_store()
         if index.ntotal ==0:
             print("saved vector store in empty there for rebuilding........")
 
-            return build_vector_store
+            return build_vector_store()
 
         print(f"Loaded {len(chunks)} chunks saved vector db ")
         return index ,chunks
     print("no Complete saved vector db found buliding it now ")
 
-    return build_vector_store
+    return build_vector_store()
 
 
 #========================= Retrival 
@@ -228,13 +231,64 @@ def retieve_relevent_chunks(question,index,chunks):
         chunk=chunks[int(position)]
 
         results.append({
-            "source":chunks["source"],
+            "Source":chunk["Source"],
             "text":chunk["text"],
-            "source":float(score)
+            "score":float(score)
         })
 
     
         return results
+
+
+#  genrate the answer 
+
+
+def answer_question(question, index, chunks):
+    """Answer using retrieved document text and show the source filenames."""
+
+    retrieved_chunks = retieve_relevent_chunks(question, index, chunks)
+
+    if not retrieved_chunks:
+        return "I couldn't find relevant information in the indexed documents."
+
+    context_parts = []
+
+    for number, chunk in enumerate(retrieved_chunks, start=1):
+        context_parts.append(
+            f"[Source {number}: {chunk['Source']}]\n{chunk['text']}"
+        )
+
+    context = "\n\n---\n\n".join(context_parts)
+
+    prompt = f"""
+                You are a helpful assistant answering questions about the provided documents.
+
+                Use the supplied context as your primary source.
+                If the context does not contain the answer, say that you could not find the answer in the provided documents.
+                Do not invent facts.
+                Mention source filenames when useful.
+
+Question:
+{question}
+
+Retrieved Document Context:
+{context}
+"""
+
+    response = client.models.generate_content(
+        model=CHAT_MODEL,
+        contents=prompt
+    )
+
+    answer = response.text.strip()
+
+    sources = []
+
+    for chunk in retrieved_chunks:
+        if chunk["Source"] not in sources:
+            sources.append(chunk["Source"])
+
+    return answer + "\n\nSources: " + ", ".join(sources)
 
 
 
